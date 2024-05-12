@@ -30,15 +30,24 @@ app.get("/",(req,res)=>{
 io.on("connection",(socket)=>{
     console.log("user id ",socket.id)
     userConnectedIds.push(socket.id)
-    socket.on('message',(message)=>{
-        console.log("message ",message);
-        MessageArray.push(message)
+    socket.on('message',(messageObj)=>{
+        console.log("message ",messageObj);
+        MessageArray.push(messageObj)
         userConnectedIds.forEach((id) => {
             if (id !== socket.id) {
-              io.to(id).emit('message', message);
+              io.to(id).emit('message', messageObj);
             }
         });
     })
+    // socket.on('message',(message)=>{
+    //     console.log("message ",message);
+    //     MessageArray.push(message)
+    //     userConnectedIds.forEach((id) => {
+    //         if (id !== socket.id) {
+    //           io.to(id).emit('message', message);
+    //         }
+    //     });
+    // })
     
     socket.on('disconnect', () => {
       console.log('user disconnected');
