@@ -9,7 +9,8 @@ function authenticate(req,res,next){
     if(data.success){
         req.userId=data.data.id
         req.socketId=data.data.socketId
-        return next()
+        req.username=data.data.username
+        return next()  
     }
     return res.status(400).json({message:"Session expired.",success:false})
 }

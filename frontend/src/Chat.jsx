@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from "socket.io-client";
+import api from './utils/Api';
+import { useNavigate } from 'react-router-dom';
 
 
 function Chat() {
+  const navigate=useNavigate()
   const [socket, setSocket] = useState(null)
   const [message, setMessage] = useState([{ message: "thing", timestamp: Date.now(), senderId: 1 }, { message: "something", timestamp: Date.now(), senderId: 1 }])
   const [sendmessage, setSendmessage] = useState("")
@@ -25,7 +28,7 @@ function Chat() {
       setSocket(null)
       return
     }
-    const newsocket = io("http://localhost:3000/")
+    const newsocket = io("http://localhost:3000/",{withCredentials: true})
     myid.current = newsocket.id
     setSocket(newsocket)
   }
@@ -35,8 +38,8 @@ function Chat() {
   const sendMessage = async () => {
     const messageObj = {
       message: sendmessage.trim(),
-      timestamp: Date.now(),
-      senderId: myid.current || socket?.id
+      senderId: myid.current || socket?.id,
+      roomId:null
     }
     setMessage(prev => [...prev, messageObj])
     scrollToBottom()
@@ -48,8 +51,14 @@ function Chat() {
     setSendmessage("")
     textareaRef.current?.focus();
   }
+  const logout= async ()=>{
+    await api.get("/user/logout")
+    console.log("Logged out")
+    navigate("/login")
+  }
   return (
     <div className='flex justify-center items-center h-[100vh] w-full flex-col space-y-5'>
+      <button className='bg-red-500 px-3 py-5 text-lg font-semibold text-white rounded-md' onClick={logout}>logout</button>
       <h1 className='text-xl text-center font-semibold shadow-md'>WebSocket SelfLearning Tutorial Your Id:{myid.current || socket?.id}</h1>
       <button className={`text-xl font-semibold text-white ${socket ? "bg-red-500" : "bg-black"} p-3 w-1/3 mx-auto`} onClick={SocketFunction}>{socket ? "Disconnect" : "Connect"}</button>
       <div className='min-h-[50vh] max-h-[70vh] h-auto border-2 border-gray-300 rounded-md w-1/2 p-2 overflow-auto'>
@@ -61,13 +70,13 @@ function Chat() {
             <div key={i} className={`w-full flex ${m.senderId === socket?.id ?"justify-end":"justify-normal"}`}>
               <div className={`flex flex-col h-[auto] w-3/5 border-2 border-gray-100 shadow-md rounded-md text-black ${m.senderId === socket?.id ? 'bg-[#a5be00]' : 'bg-[#eff1ed]'}`}>
                 <div className='flex items-start'>
-                  <p className='text-xs px-2'>{m.senderId}</p>
+                  <p className='text-xs px-2'>{m.senderId || m.userId}</p>
                 </div>
                 <p className={`flex-1 w-full px-4 py-1`}>
                   {m.message}
                 </p>
                 <div className='flex justify-end'>
-                  <p className='text-xs px-2'>{m.timestamp}</p>
+                  <p className='text-xs px-2'>{m.timestamp || m.createdAt}</p>
                 </div>
               </div>
             </div>

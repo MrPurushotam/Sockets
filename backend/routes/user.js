@@ -10,7 +10,7 @@ const router=Router();
 router.post('/login',async (req,res)=>{
     try {
         const {email, password}=req.body
-        if(!email.trim() || !password.trim()){
+        if(!(email?.trim()) || !(password?.trim())){
             return res.status(400).json({message:"Invalid data sent.",success:false})
         }
         const user= await prisma.user.findUnique({
@@ -25,7 +25,7 @@ router.post('/login',async (req,res)=>{
         if(!CorrectPassword ){
             return res.status(400).json({message:"Incorrect passowrd.",success:false})
         }
-        const token=createToken({id:user.id,socketId:user.SocketId})
+        const token=createToken({id:user.id,username:user.name})
         res.cookie('token',token)
         res.status(200).json({message:"Logged in.",success:true})
     } catch (error) {
@@ -37,7 +37,7 @@ router.post('/login',async (req,res)=>{
 router.post('/signup',async(req,res)=>{
     try {
         const {name, email,password}=req.body
-        if(!email.trim() || !password.trim() || !name.trim()){
+        if(!(email?.trim()) || !(password?.trim()) || !(name?.trim())){
             return res.status(400).json({message:"Invalid data sent.",success:false})
         }
     
@@ -56,13 +56,19 @@ router.post('/signup',async(req,res)=>{
                 name:name.trim()
             }
         })
-        const token=createToken({id:newuser.id,socketId:newuser.SocketId})
+        const token=createToken({id:newuser.id,username:user.name})
         res.cookie('token',token)
         res.status(200).json({message:"User created.",success:true})
     } catch (error) {
         console.log("Error ",error.message)
         return res.status(500).json({message:"Internal error occured.",success:false})
     }
+})
+
+router.get("/logout",(req,res)=>{
+    res.clearCookie("token")
+    console.log("cleared cookies")
+    res.status(200).json({message:"Logged out.",success:true})
 })
 
 module.exports= router
