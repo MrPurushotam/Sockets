@@ -43,7 +43,7 @@ router.post('/signup',async(req,res)=>{
     
         const user= await prisma.user.findUnique({
             where:{
-                email
+                email: email.trim()
             }
         })
         if(user){
@@ -51,9 +51,9 @@ router.post('/signup',async(req,res)=>{
         }
         const newuser= await prisma.user.create({
             data:{
-                email:email.trim(),
-                password:await bcrypt.hash(password.trim(),10),
-                name:name.trim()
+                email: email.trim(),
+                password: await bcrypt.hash(password.trim(),10),
+                name: name.trim()
             }
         })
         const token=createToken({id:newuser.id,username:user.name})

@@ -38,8 +38,7 @@ function Chat() {
   const sendMessage = async () => {
     const messageObj = {
       message: sendmessage.trim(),
-      senderId: myid.current || socket?.id,
-      roomId:null
+      roomId:1
     }
     setMessage(prev => [...prev, messageObj])
     scrollToBottom()

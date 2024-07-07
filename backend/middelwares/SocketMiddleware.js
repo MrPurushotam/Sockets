@@ -16,11 +16,13 @@ function SocketIdMiddleware(socket, next) {
             return next(new Error("Authentication Error"))
         }
         const data = verifyToken(authToken)
-        console.log(data)
         if (data.success) {
             socket.username = data.data.username
             socket.userId = data.data.id
             return next()
+        }
+        if(!data.success && data.jwtExpire){
+            return next(new Error("Jwt Token expired."))
         }
         return next(new Error("Authentication Error"))
 

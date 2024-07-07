@@ -12,6 +12,12 @@ function authenticate(req,res,next){
         req.username=data.data.username
         return next()  
     }
+    
+    if(!data.success && data.jwtExpire){
+        console.log("Inside test block")
+        res.clearCookie("token")
+        return res.status(400).json({message:"Jwt Expired",success:false})
+    }
     return res.status(400).json({message:"Session expired.",success:false})
 }
 

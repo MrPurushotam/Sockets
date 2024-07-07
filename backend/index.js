@@ -5,7 +5,6 @@ const UserRouter= require("./routes/user")
 
 const app= express()
 
-require('dotenv').config()
 app.use(cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials:true
