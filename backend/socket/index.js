@@ -8,7 +8,7 @@ const ROOM_ID= "1"
 
 const ConnectedUser=new Map()
 
-const initalizeSocket= (server)=>{
+    const initalizeSocket= (server)=>{
     const io = new Server(server, {
         cors: {
             origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -23,6 +23,7 @@ const initalizeSocket= (server)=>{
     io.on("connection", (socket) => {
         console.log("User connected: ", socket.id," Username :",socket.username, "& User id :",socket.userId);
 
+        // TODO: Add a function such that if user is already in hashmap then the old user get removed forcefully and other user get feeded in system
         // if(ConnectedUser.has(socket.userId)){
             
         // }
@@ -39,10 +40,14 @@ const initalizeSocket= (server)=>{
                 userId:socket.userId,
                 username:socket.username,
                 message:messageObj.message,
-                roomId:ROOM_ID
+                roomId:messageObj.roomId
             }
-            await storeChatToRedis(socket.id,message)
-            socket.to(ROOM_ID).emit('message',message)
+            try {
+                await storeChatToRedis(socket,message)
+                socket.to(ROOM_ID).emit('message',message)
+            } catch (error) {
+                console.log("error occured ",error.message)
+            }
         });
 
         socket.on('disconnect', () => {

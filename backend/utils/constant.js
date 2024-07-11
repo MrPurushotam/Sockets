@@ -1,5 +1,5 @@
 const jwt= require('jsonwebtoken')
-const redisClient = require("./redisClient")
+const {redisClient} = require("./redisClient")
 const {prefix,expiry}= require("./ChatConfig")
 
 function createToken(object){
@@ -21,19 +21,23 @@ function verifyToken(token){
 }
 
 async function storeChatToRedis(socket,message){
+    console.log("Inside redis add function")
+    console.log(message)
     const timestamp = Date.now();
-    const key= `${prefix}-${socket.id}:${timestamp}`
+    const key= `${prefix}-${socket.userId}:${timestamp}`
+    console.log(key)
     try {
-        await redisClient.rpush(key,JSON.stringify(message))
-        await redisClient.expire(key,expiry);   
+        const data=await redisClient.rPush(key,JSON.stringify(message))
+        await redisClient.expire(key,expiry);
+        console.log("data",data,expiry)
+        console.log("Stored inside")
     } catch (error) {
-        console.log("Error occured ",JSON.stringify(error))
+        console.log("Error occured ",error.message)
     }
-console.log("Inside redis cache")
 }
 // think about it
-async function clearRedisTable(socket){
-    await redisClient.flushdb()
+async function clearRedisTable(){
+    await redisClient.flushDb();
     console.log("Flushed Table")
 }
 

@@ -1,26 +1,32 @@
-const Redis = require("ioredis");
+const redis= require("redis")
 require("dotenv").config()
-
-const initalizeRedis=()=>{
-    const serviceUri = process.env.REDIS_URL
-    if(!serviceUri){
-        throw new Error("Redis URL Not found")
+let redisClient;
+const createClient=()=>{
+    try {
+        const url = process.env.REDIS_URL;
+        if(!url){
+            console.log("Invalid Redis url.")
+            process.exit(1)
+        }
+        const client= new redis.createClient({url})
+        return client
+        
+    } catch (error) {
+        console.log("Error ",(error.message))
+        process.exit(1)
     }
-    const redisClient = new Redis(serviceUri);
-    return redisClient
 }
 
-const handleRedisClientConnection=(redisClient)=>{
-    return new Promise((resolve,reject)=>{
-        redisClient.on("connect",()=>{
-            console.log("Connected to redis database.")
-            resolve(redisClient)
-        })
-        redisClient.on("error",(err)=>{
-            console.log("Error occured during redis client connection",err.message)
-            reject(err)
-        })
-    })
+const connectToRedis= async (client)=>{
+    try {
+        await client.connect()
+        console.log("Connected To Redis")
+    } catch (error) {
+        console.log("Error occured: ", error)
+        process.exit(1)
+    }
 }
-const redisClient = initalizeRedis()
-module.exports={redisClient,handleRedisClientConnection}
+if(!redisClient){
+    redisClient=createClient()
+}
+module.exports={redisClient,connectToRedis}

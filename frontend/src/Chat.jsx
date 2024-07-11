@@ -58,6 +58,13 @@ function Chat() {
   return (
     <div className='flex justify-center items-center h-[100vh] w-full flex-col space-y-5'>
       <button className='bg-red-500 px-3 py-5 text-lg font-semibold text-white rounded-md' onClick={logout}>logout</button>
+      <button className='text-red-500 border-2' 
+      onClick={async()=>{
+        console.log("Hit")
+        const resp=await api.get("/check")
+        const data=await resp.data
+        console.log(data)
+      }}>Redis</button>
       <h1 className='text-xl text-center font-semibold shadow-md'>WebSocket SelfLearning Tutorial Your Id:{myid.current || socket?.id}</h1>
       <button className={`text-xl font-semibold text-white ${socket ? "bg-red-500" : "bg-black"} p-3 w-1/3 mx-auto`} onClick={SocketFunction}>{socket ? "Disconnect" : "Connect"}</button>
       <div className='min-h-[50vh] max-h-[70vh] h-auto border-2 border-gray-300 rounded-md w-1/2 p-2 overflow-auto'>
