@@ -2,6 +2,7 @@ const Router= require("express")
 const bcrypt= require("bcryptjs")
 const {createToken}= require("../utils/constant")
 const { PrismaClient } =require('@prisma/client')
+const authenticate= require("../middelwares/auth")
 
 const prisma=new PrismaClient()
 
@@ -70,5 +71,33 @@ router.get("/logout",(req,res)=>{
     console.log("cleared cookies")
     res.status(200).json({message:"Logged out.",success:true})
 })
+
+router.use(authenticate)
+
+router.get('/find/:id',async(req,res)=>{
+    try {
+        const {id}= req.params.id
+        const user= await prisma.user.findUnique({
+            where:{
+                id
+            },
+            select:{
+                name:true,
+                id:true,
+                joined:true
+            }
+        })
+        console.log(user)
+        if(!user){
+            return res.json({message:"Invalid userid",success:true})
+        }
+        return res.json({message:"User fetched.",success:true,user})
+    } catch (error) {
+        console.log("Internal Error. ",error.message)
+        return res.status(500).json({message:"Internal error occured.",success:false})
+    }
+})
+
+
 
 module.exports= router

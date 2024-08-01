@@ -22,7 +22,7 @@ function SocketIdMiddleware(socket, next) {
             return next()
         }
         if(!data.success && data.jwtExpire){
-            return next(new Error("Jwt Token expired."))
+            return next(new Error("JwtTokenExpired"))
         }
         return next(new Error("Authentication Error"))
 

@@ -12,12 +12,42 @@ function Chat() {
   const myid = useRef(null)
   const focus=useRef(null)
   const textareaRef = useRef(null);
+
   useEffect(() => {
     if (socket && !myid.current) {
       myid.current = socket.id
     }
+    socket?.on("connect_error",(err)=>{
+      console.log("Error ",err.message)
+      if(err.message==="JwtTokenExpired"){
+        document.cookie=`token=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`
+        navigate("/login")
+      }
+    })
     socket?.on("message", (message) => {
+      console.log(message)
       setMessage(prev => [...prev, message])
+    })
+    socket?.on("room-joined",(rid)=>console.log("Room joined with id ",rid))
+
+    socket?.emit("connected-users")
+    
+    socket?.on("connected-users",(users)=>{
+      console.log(users)
+    })
+    
+    socket?.on("user-joined",(new_user_detail)=>{
+      console.log((new_user_detail))
+    })
+    socket?.on("history",(chats)=>{
+      console.log(chats)
+    })
+    socket?.emit("history","1")
+
+    socket?.on("session-closed",(data)=>{
+      console.log(data)
+      alert(data.message)
+      data.exitConnection ? setSocket(null) : null
     })
   }, [socket, myid])
 
@@ -29,6 +59,7 @@ function Chat() {
       return
     }
     const newsocket = io("http://localhost:3000/",{withCredentials: true})
+    newsocket?.emit("join-room","1")  //joins room with id = "1" -> Room Id should be string
     myid.current = newsocket.id
     setSocket(newsocket)
   }
@@ -38,7 +69,7 @@ function Chat() {
   const sendMessage = async () => {
     const messageObj = {
       message: sendmessage.trim(),
-      roomId:1
+      roomId:"1"
     }
     setMessage(prev => [...prev, messageObj])
     scrollToBottom()

@@ -20,13 +20,11 @@ const createClient=()=>{
 const connectToRedis= async (client)=>{
     try {
         await client.connect()
-        console.log("Connected To Redis")
     } catch (error) {
         console.log("Error occured: ", error)
         process.exit(1)
     }
 }
-if(!redisClient){
-    redisClient=createClient()
-}
+redisClient=createClient()
+
 module.exports={redisClient,connectToRedis}

@@ -1,10 +1,6 @@
 const {Server}= require("socket.io")
 const {SocketIdMiddleware}= require("../middelwares/SocketMiddleware")
-const { PrismaClient } =require('@prisma/client')
-const {storeChatToRedis}= require("../utils/constant")
-
-const prisma = new PrismaClient()
-const ROOM_ID= "1"
+const { handleMessage,handleJoiningRoom, handleUserSession, handleConnectedUser, fetchChatHistory } = require("./socketFunctions")
 
 const ConnectedUser=new Map()
 
@@ -18,40 +14,28 @@ const ConnectedUser=new Map()
     });
 
     io.use(SocketIdMiddleware)
-    // FIXME: fix this if jwt is expired the cookies should be cleared automatically
-
+    
     io.on("connection", (socket) => {
-        console.log("User connected: ", socket.id," Username :",socket.username, "& User id :",socket.userId);
+        socket.on("error",err=>console.log(err))
 
-        // TODO: Add a function such that if user is already in hashmap then the old user get removed forcefully and other user get feeded in system
-        // if(ConnectedUser.has(socket.userId)){
-            
-        // }
-        ConnectedUser.set(socket.userId,{socketId:socket.id,username:socket.username})
+        handleUserSession(io,socket,ConnectedUser)
 
-        socket.on("history",async()=>{
-            
+        socket.on("join-room",(room_id)=>{
+            handleJoiningRoom(socket,room_id);
         })
 
-        socket.join(ROOM_ID)
-        socket.on('message', async(messageObj) => {
-            console.log("message ", messageObj);
-            const message={
-                userId:socket.userId,
-                username:socket.username,
-                message:messageObj.message,
-                roomId:messageObj.roomId
-            }
-            try {
-                await storeChatToRedis(socket,message)
-                socket.to(ROOM_ID).emit('message',message)
-            } catch (error) {
-                console.log("error occured ",error.message)
-            }
-        });
+        socket.on("connected-users",()=>{
+            handleConnectedUser(socket, ConnectedUser)
+        })
+
+        socket.on("history",(room_id)=>{
+            fetchChatHistory(socket,room_id)
+        })
+        
+        socket.on('message', handleMessage(socket));
 
         socket.on('disconnect', () => {
-            console.log('user disconnected');
+            console.log('user disconnected ',socket.id);
             ConnectedUser.delete(socket.userId)
         });
     });

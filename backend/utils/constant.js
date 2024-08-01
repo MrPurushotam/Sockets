@@ -1,6 +1,6 @@
 const jwt= require('jsonwebtoken')
 const {redisClient} = require("./redisClient")
-const {prefix,expiry}= require("./ChatConfig")
+const {prefix,expiry, secondaryPrefix, secondaryCacheLimit}= require("./ChatConfig")
 
 function createToken(object){
     const token = jwt.sign(object,process.env.SECRET_KEY,{expiresIn:'3d'})
@@ -21,16 +21,16 @@ function verifyToken(token){
 }
 
 async function storeChatToRedis(socket,message){
-    console.log("Inside redis add function")
-    console.log(message)
-    const timestamp = Date.now();
-    const key= `${prefix}-${socket.userId}:${timestamp}`
-    console.log(key)
+    const key= `${prefix}-${message.roomId}`
+    const secondaryKey=`${secondaryPrefix}-${message.roomId}`
     try {
-        const data=await redisClient.rPush(key,JSON.stringify(message))
-        await redisClient.expire(key,expiry);
-        console.log("data",data,expiry)
-        console.log("Stored inside")
+        const data= await redisClient.rPush(key,JSON.stringify(message),{EX:expiry})
+        await redisClient.rPush(secondaryKey,JSON.stringify(message))
+        const length = await redisClient.lLen(secondaryKey);
+        if (length > secondaryCacheLimit) {
+            await redisClient.lTrim(secondaryKey, -secondaryCacheLimit, -1);
+        }
+        console.log("Message stored in cache",data)
     } catch (error) {
         console.log("Error occured ",error.message)
     }

@@ -4,6 +4,7 @@ import SigninPage from './Pages/SigninPage';
 import Chat from './Chat';
 import Home from './Pages/Home';
 import { SecureDashboardRoute,SecureLogin} from "./components/ProtectRoute"
+import Test from './Pages/Test';
 
 function App(){
 
@@ -12,6 +13,7 @@ function App(){
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Home/>} />
+          <Route path='/test' element={<Test/>} />
 
           <Route element={<SecureLogin/>}>
             <Route path='/login' element={<SigninPage/>} />
